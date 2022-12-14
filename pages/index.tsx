@@ -1,29 +1,26 @@
 import React, { useState } from "react";
 import dynamic from "next/dynamic";
-import { Flex, Heading, Text } from "@chakra-ui/react";
+import {
+  Button,
+  Flex,
+  Heading,
+  IconButton,
+  Input,
+  Text,
+} from "@chakra-ui/react";
 import { DragDropContext, Draggable } from "react-beautiful-dnd";
-//
+// Dynamic imports
 const Column = dynamic(() => import("components/Column"), { ssr: false });
-//
+// Config files
 import { initialState } from "config/dnd";
-
-const reorderColumnList = (sourceCol: any, startIndex: any, endIndex: any) => {
-  const newTaskIds = Array.from(sourceCol.taskIds);
-  const [removed] = newTaskIds.splice(startIndex, 1);
-  newTaskIds.splice(endIndex, 0, removed);
-
-  const newColumn = {
-    ...sourceCol,
-    taskIds: newTaskIds,
-  };
-
-  return newColumn;
-};
+import { generateId, reorderColumnList } from "utils";
+import { DeleteIcon } from "@chakra-ui/icons";
 
 const Home = () => {
-  //
+  // state's
+  const [task, setTask] = useState("");
   const [state, setState] = useState(initialState);
-  //
+  // on drag end
   const onDragEnd = (result: any) => {
     const { destination, source } = result;
     //
@@ -76,6 +73,32 @@ const Home = () => {
 
     setState(newState);
   };
+
+  const onSubmit = () => {
+    setTask("");
+    const id = generateId();
+    const newTask = {
+      id,
+      content: task,
+    };
+    const newState = {
+      ...state,
+      tasks: {
+        ...state.tasks,
+        [id]: newTask,
+      },
+      columns: {
+        ...state.columns,
+        "column-1": {
+          ...state.columns["column-1"],
+          taskIds: [...state.columns["column-1"].taskIds, id],
+        },
+      },
+    };
+    setState(newState);
+  };
+  const onChange = (e: any) => setTask(e.target.value);
+
   return (
     <DragDropContext onDragEnd={onDragEnd}>
       <Flex
@@ -93,6 +116,17 @@ const Home = () => {
           <Text fontSize="20px" fontWeight={600} color="subtle-text">
             React-Beatiful-dnd
           </Text>
+          <Flex my="24px" gap="12px" color="subtle-text">
+            <Input
+              variant="filled"
+              placeholder="Añadir una tarea"
+              value={task}
+              onChange={onChange}
+            />
+            <Button color="InfoText" onClick={onSubmit}>
+              Agregar
+            </Button>
+          </Flex>
           <Flex justify="space-between" px="4rem" gap="24px">
             {state.columnOrder.map((column) => {
               const columnState = (state.columns as any)[column];
@@ -106,7 +140,11 @@ const Home = () => {
                   id={columnState.id}
                 >
                   {tasks.map((i: any, index: number) => (
-                    <Draggable key={i.id} draggableId={`${i.id}`} index={index}>
+                    <Draggable
+                      key={i?.id}
+                      draggableId={`${i?.id}`}
+                      index={index}
+                    >
                       {({ innerRef, draggableProps, dragHandleProps }) => (
                         <Flex
                           ref={innerRef}
@@ -118,8 +156,38 @@ const Home = () => {
                           p="1.5rem"
                           {...draggableProps}
                           {...dragHandleProps}
+                          justify="space-between"
+                          align="center"
                         >
                           <Text>{i.content}</Text>
+                          <IconButton
+                            colorScheme="red"
+                            fontSize={20}
+                            icon={<DeleteIcon />}
+                            aria-label="Delete"
+                            onClick={() => {
+                              const newState = {
+                                ...state,
+                                columns: {
+                                  ...state.columns,
+                                  [column]: {
+                                    ...(state.columns as any)[column],
+                                    taskIds: [
+                                      ...(state.columns as any)[
+                                        column
+                                      ].taskIds.filter((j: any) => j != i.id),
+                                    ],
+                                  },
+                                },
+                              };
+                              delete (newState.tasks as any)[i.id];
+                              console.log(
+                                newState,
+                                (newState.tasks as any)[i.id]
+                              );
+                              setState(newState);
+                            }}
+                          />
                         </Flex>
                       )}
                     </Draggable>
