@@ -140,7 +140,6 @@ const Home = () => {
                 const tasks = columnState.taskIds.map(
                   (taskId: string) => (state.tasks as any)[taskId]
                 );
-                console.log(columnState);
                 return (
                   <Column
                     title={columnState.title}
