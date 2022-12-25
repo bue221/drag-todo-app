@@ -8,13 +8,15 @@ import {
   Input,
   Text,
 } from "@chakra-ui/react";
+import { DeleteIcon } from "@chakra-ui/icons";
+// DND
 import { DragDropContext, Draggable } from "react-beautiful-dnd";
 // Dynamic imports
 const Column = dynamic(() => import("components/Column"), { ssr: false });
 // Config files
 import { initialState } from "config/dnd";
 import { generateId, reorderColumnList } from "utils";
-import { DeleteIcon } from "@chakra-ui/icons";
+import Head from "next/head";
 
 const Home = () => {
   // state's
@@ -73,7 +75,7 @@ const Home = () => {
 
     setState(newState);
   };
-
+  //
   const onSubmit = () => {
     setTask("");
     const id = generateId();
@@ -97,108 +99,111 @@ const Home = () => {
     };
     setState(newState);
   };
+  //
   const onChange = (e: any) => setTask(e.target.value);
 
   return (
-    <DragDropContext onDragEnd={onDragEnd}>
-      <Flex
-        dir="column"
-        bg="main-bg"
-        minH="100vh"
-        w="full"
-        color="white-text"
-        pb="2rem"
-      >
-        <Flex py="4rem" flexDir="column" align="center" w="full">
-          <Heading fontSize="3xl" fontWeight={600}>
-            React Beatiful Drag and Drop
-          </Heading>
-          <Text fontSize="20px" fontWeight={600} color="subtle-text">
-            React-Beatiful-dnd
-          </Text>
-          <Flex my="24px" gap="12px" color="subtle-text">
-            <Input
-              variant="filled"
-              placeholder="Añadir una tarea"
-              value={task}
-              onChange={onChange}
-            />
-            <Button color="InfoText" onClick={onSubmit}>
-              Agregar
-            </Button>
-          </Flex>
-          <Flex justify="space-between" px="4rem" gap="24px">
-            {state.columnOrder.map((column) => {
-              const columnState = (state.columns as any)[column];
-              const tasks = columnState.taskIds.map(
-                (taskId: string) => (state.tasks as any)[taskId]
-              );
-              return (
-                <Column
-                  title={columnState.title}
-                  key={columnState.id}
-                  id={columnState.id}
-                >
-                  {tasks.map((i: any, index: number) => (
-                    <Draggable
-                      key={i?.id}
-                      draggableId={`${i?.id}`}
-                      index={index}
-                    >
-                      {({ innerRef, draggableProps, dragHandleProps }) => (
-                        <Flex
-                          ref={innerRef}
-                          key={i.id}
-                          mb="1rem"
-                          h="72px"
-                          bg="card-bg"
-                          rounded="3px"
-                          p="1.5rem"
-                          {...draggableProps}
-                          {...dragHandleProps}
-                          justify="space-between"
-                          align="center"
-                        >
-                          <Text>{i.content}</Text>
-                          <IconButton
-                            colorScheme="red"
-                            fontSize={20}
-                            icon={<DeleteIcon />}
-                            aria-label="Delete"
-                            onClick={() => {
-                              const newState = {
-                                ...state,
-                                columns: {
-                                  ...state.columns,
-                                  [column]: {
-                                    ...(state.columns as any)[column],
-                                    taskIds: [
-                                      ...(state.columns as any)[
-                                        column
-                                      ].taskIds.filter((j: any) => j != i.id),
-                                    ],
+    <>
+      <Head>
+        <title>TODO-APP | BUE221</title>
+      </Head>
+      <DragDropContext onDragEnd={onDragEnd}>
+        <Flex
+          dir="column"
+          bg="main-bg"
+          minH="100vh"
+          w="full"
+          color="white-text"
+          pb="2rem"
+        >
+          <Flex py="4rem" flexDir="column" align="center" w="full">
+            <Heading fontSize="3xl" fontWeight={600}>
+              React Beatiful Drag and Drop
+            </Heading>
+            <Text fontSize="20px" fontWeight={600} color="subtle-text">
+              React-Beatiful-dnd
+            </Text>
+            <Flex my="24px" gap="12px" color="subtle-text">
+              <Input
+                variant="filled"
+                placeholder="Añadir una tarea"
+                value={task}
+                onChange={onChange}
+              />
+              <Button color="InfoText" onClick={onSubmit}>
+                Agregar
+              </Button>
+            </Flex>
+            <Flex justify="space-between" px="4rem" gap="24px">
+              {state.columnOrder.map((column) => {
+                const columnState = (state.columns as any)[column];
+                const tasks = columnState.taskIds.map(
+                  (taskId: string) => (state.tasks as any)[taskId]
+                );
+                console.log(columnState);
+                return (
+                  <Column
+                    title={columnState.title}
+                    key={columnState.id}
+                    id={columnState.id}
+                  >
+                    {tasks.map((i: any, index: number) => (
+                      <Draggable
+                        key={i?.id}
+                        draggableId={`${i?.id}`}
+                        index={index}
+                      >
+                        {({ innerRef, draggableProps, dragHandleProps }) => (
+                          <Flex
+                            ref={innerRef}
+                            key={i.id}
+                            mb="1rem"
+                            h="72px"
+                            bg="card-bg"
+                            rounded="3px"
+                            p="1.5rem"
+                            {...draggableProps}
+                            {...dragHandleProps}
+                            justify="space-between"
+                            align="center"
+                          >
+                            <Text>{i.content}</Text>
+                            <IconButton
+                              colorScheme="red"
+                              fontSize={20}
+                              icon={<DeleteIcon />}
+                              aria-label="Delete"
+                              onClick={() => {
+                                const newState = {
+                                  ...state,
+                                  columns: {
+                                    ...state.columns,
+                                    [column]: {
+                                      ...(state.columns as any)[column],
+                                      taskIds: [
+                                        ...(state.columns as any)[
+                                          column
+                                        ].taskIds.filter((j: any) => j != i.id),
+                                      ],
+                                    },
                                   },
-                                },
-                              };
-                              delete (newState.tasks as any)[i.id];
-                              console.log(
-                                newState,
-                                (newState.tasks as any)[i.id]
-                              );
-                              setState(newState);
-                            }}
-                          />
-                        </Flex>
-                      )}
-                    </Draggable>
-                  ))}
-                </Column>
-              );
-            })}
+                                };
+                                delete (newState.tasks as any)[i.id];
+                                setState(newState);
+                              }}
+                            />
+                          </Flex>
+                        )}
+                      </Draggable>
+                    ))}
+                  </Column>
+                );
+              })}
+            </Flex>
           </Flex>
         </Flex>
-      </Flex>
-    </DragDropContext>
+      </DragDropContext>
+    </>
   );
 };
 

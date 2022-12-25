@@ -1,11 +1,13 @@
-export const generateId = () => {
-  return Math.floor((1 + Math.random()) * 0x10000);
-};
+export const generateId = () => Math.floor((1 + Math.random()) * 0x10000);
 
 export const reorderColumnList = (
-  sourceCol: any,
-  startIndex: any,
-  endIndex: any
+  sourceCol: {
+    id: string;
+    title: string;
+    taskIds: number[];
+  },
+  startIndex: number,
+  endIndex: number
 ) => {
   const newTaskIds = Array.from(sourceCol.taskIds);
   const [removed] = newTaskIds.splice(startIndex, 1);
